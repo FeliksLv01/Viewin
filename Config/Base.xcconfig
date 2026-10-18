@@ -1,0 +1,13 @@
+// Shared app identity and version. Update these values for future releases.
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+PRODUCT_NAME = Viewin
+PRODUCT_BUNDLE_IDENTIFIER = com.felikslv.Viewin
+INFOPLIST_KEY_CFBundleDisplayName = $(PRODUCT_NAME)
+
+// Shared icon for Debug and Release.
+ASSETCATALOG_COMPILER_APPICON_NAME = ViewinIcon
+
+// Document registration is merged with Xcode-generated bundle keys.
+INFOPLIST_FILE = Config/Info.plist

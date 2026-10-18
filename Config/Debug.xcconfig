@@ -1,0 +1,5 @@
+#include "Base.xcconfig"
+
+// Keep the development app distinguishable and installable alongside Release.
+PRODUCT_NAME = Viewin Debug
+PRODUCT_BUNDLE_IDENTIFIER = com.felikslv.Viewin.debug

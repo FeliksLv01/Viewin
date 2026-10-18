@@ -1,0 +1,14 @@
+.build/
+.DS_Store
+work/
+**/.gradle/
+**/build/
+
+# Local Xcode user preferences
+**/xcuserdata/
+*.xcuserstate
+
+# Local design sources and implementation/research notes
+/design/
+/docs/
+/scripts/sync-resources.py

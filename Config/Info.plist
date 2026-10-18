@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Viewin Snapshot</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.viewin.snapshot</string>
+				<string>app.inview.snapshot</string>
+				<string>app.uiinspector.snapshot</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.archive</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Viewin Snapshot</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.viewin.snapshot</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>viewin</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/vnd.viewin.snapshot</string>
+			</dict>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Legacy InView Snapshot</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.inview.snapshot</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>inview</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/vnd.inview.snapshot</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Legacy UI Inspector Snapshot</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.uiinspector.snapshot</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>uiinspector</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/vnd.uiinspector.snapshot</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>
