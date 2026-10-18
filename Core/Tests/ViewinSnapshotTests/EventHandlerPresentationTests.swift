@@ -3,6 +3,28 @@ import ViewinProtocol
 @testable import ViewinSnapshot
 
 final class EventHandlerPresentationTests: XCTestCase {
+  func testSwiftUIGestureDoesNotPretendToHaveUIKitDelegateOrSelectors() throws {
+    let event = try XCTUnwrap(EventHandlerPresentation(id: 0, value: .object([
+      "typeName": .string("SwiftUI.AddGestureModifier<TapGesture>"), "handlerType": .string("gesture"),
+      "origin": .string("swiftuiRuntime"), "gestureType": .string("TapGesture"),
+      "composition": .string("SimultaneousGesture"), "handlerDescription": .string("Swift closure"),
+    ])))
+    XCTAssertTrue(event.isGesture)
+    XCTAssertEqual(event.rows.map(\.label), ["Gesture", "Composition", "Handler"])
+    XCTAssertEqual(event.rows.map(\.value), ["TapGesture", "SimultaneousGesture", "Swift closure"])
+  }
+
+  func testAndroidEventShowsListenerPresenceWithoutUIKitSelectors() throws {
+    let event = try XCTUnwrap(EventHandlerPresentation(id: 0, value: .object([
+      "typeName": .string("View.OnClickListener"), "eventName": .string("Click"),
+      "origin": .string("androidView"), "enabled": .bool(true),
+      "handlerDescription": .string("Registered listener"),
+    ])))
+    XCTAssertEqual(event.title, "Click")
+    XCTAssertEqual(event.rows.map(\.label), ["Enabled", "Listener"])
+    XCTAssertEqual(event.rows.map(\.value), ["YES", "Registered listener"])
+  }
+
   func testMultipleActionsAndGestureMetadataStayStructured() throws {
     let value: JSONValue = .object([
       "typeName": .string("MyTap"), "handlerType": .string("gesture"), "enabled": .bool(false),
@@ -15,7 +37,7 @@ final class EventHandlerPresentationTests: XCTestCase {
     ])
     let event = try XCTUnwrap(EventHandlerPresentation(id: 0, value: value))
     XCTAssertTrue(event.isGesture)
-    XCTAssertEqual(event.subtitles, ["Inherits from UITapGestureRecognizer", "(Controller *) → _tap"])
+    XCTAssertEqual(event.subtitles, [L10n.format("Inherits from %@", "UITapGestureRecognizer"), "(Controller *) → _tap"])
     XCTAssertEqual(event.rows.map(\.label), ["Enabled", "Delegate", "Target 1", "Action 1", "Target 2", "Action 2"])
     XCTAssertEqual(event.rows.map(\.value), ["NO", "Controller (0x123)", "First", "first:", "Second", "second:"])
   }
@@ -23,14 +45,14 @@ final class EventHandlerPresentationTests: XCTestCase {
   func testUnavailableIsDifferentFromKnownEmptyOrLegacyMissing() throws {
     var fields: [String: JSONValue] = ["typeName": .string("UITapGestureRecognizer")]
     let legacy = try XCTUnwrap(EventHandlerPresentation(id: 0, value: .object(fields)))
-    XCTAssertEqual(legacy.rows.last?.value, "未采集")
+    XCTAssertEqual(legacy.rows.last?.value, L10n.text("未采集"))
     fields["delegate"] = .null
     fields["targetActions"] = .array([])
     let empty = try XCTUnwrap(EventHandlerPresentation(id: 0, value: .object(fields)))
-    XCTAssertEqual(empty.rows.map(\.value), ["未采集", "nil", "nil", "NULL"])
+    XCTAssertEqual(empty.rows.map(\.value), [L10n.text("未采集"), "nil", "nil", "NULL"])
     fields["targetActionsAvailability"] = .string("unavailable")
     let unavailable = try XCTUnwrap(EventHandlerPresentation(id: 0, value: .object(fields)))
-    XCTAssertEqual(unavailable.rows.last?.value, "不可用")
+    XCTAssertEqual(unavailable.rows.last?.value, L10n.text("不可用"))
   }
 
   func testOldControlSnapshotGetsNamedEventAndEditingIcon() throws {

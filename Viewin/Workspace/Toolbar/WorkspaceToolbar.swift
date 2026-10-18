@@ -75,8 +75,8 @@ struct WorkspaceToolbar: NSViewRepresentable {
       willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
       let titles = [
-        "refresh": "刷新", "app": "App 切换", "mode": "2D / 3D", "rotation": "自由旋转",
-        "settings": "设置", "scale": "大小", "measure": "测距", "open": "打开",
+        "refresh": L10n.text("刷新"), "app": L10n.text("App 切换"), "mode": "2D / 3D", "rotation": L10n.text("自由旋转"),
+        "settings": L10n.text("设置"), "scale": L10n.text("大小"), "measure": L10n.text("测距"), "open": L10n.text("打开"),
       ]
       guard let title = titles[id.rawValue] else { return nil }
       let item = NSToolbarItem(itemIdentifier: id)

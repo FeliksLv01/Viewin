@@ -25,6 +25,7 @@ public struct HierarchyPresentation: Sendable {
   /// Default-hidden system overlay roots; their full subtree uses normal hiding semantics.
   public static func isDefaultHiddenRoot(_ node: SnapshotNode) -> Bool {
     node.typeName == "_UIFloatingBarContainerView"
+      || (node.framework == "swiftuiRendering" && node.identifiers["renderingRoot"] == "true")
   }
 
   public var defaultHiddenPreviewIds: Set<String> {

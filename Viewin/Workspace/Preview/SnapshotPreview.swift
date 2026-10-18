@@ -30,7 +30,7 @@ private struct PreviewSceneContent: View {
           bounds: workspace.showBounds, cameraState: workspace.camera,
           images: workspace.nodeImages)
       } else {
-        ContentUnavailableView("没有窗口", systemImage: "macwindow")
+        ContentUnavailableView(L10n.text("没有窗口"), systemImage: "macwindow")
       }
     }
   }

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "ViewinCore",
+    defaultLocalization: "en",
     platforms: [.macOS(.v15)],
     products: [
         .library(name: "ViewinSnapshot", targets: ["ViewinSnapshot"]),
@@ -17,10 +18,10 @@ let package = Package(
     targets: [
         .executableTarget(name: "ViewinCapture", dependencies: ["ViewinConnection", "ViewinSnapshot"]),
         .target(name: "ViewinConnection", dependencies: [.product(name: "ViewinTransport", package: "ViewinSDK"), "ViewinSnapshot", .product(name: "ViewinProtocol", package: "ViewinSDK")]),
-        .target(name: "ViewinWorkspace", dependencies: ["ViewinConnection", "ViewinSnapshot", .product(name: "ViewinProtocol", package: "ViewinSDK")]),
+        .target(name: "ViewinWorkspace", dependencies: ["ViewinConnection", "ViewinSnapshot", .product(name: "ViewinProtocol", package: "ViewinSDK")], resources: [.copy("Resources/Skills")]),
         .testTarget(name: "ViewinWorkspaceTests", dependencies: ["ViewinWorkspace", "ViewinTestSupport"]),
         .target(name: "ViewinTestSupport", dependencies: ["ViewinSnapshot"], path: "Tests/ViewinTestSupport", resources: [.copy("Fixtures")]),
-        .target(name: "ViewinSnapshot", dependencies: [.product(name: "ViewinProtocol", package: "ViewinSDK"), .product(name: "ZIPFoundation", package: "ZIPFoundation")]),
+        .target(name: "ViewinSnapshot", dependencies: [.product(name: "ViewinProtocol", package: "ViewinSDK"), .product(name: "ZIPFoundation", package: "ZIPFoundation")], resources: [.process("Resources")]),
         .testTarget(name: "ViewinConnectionTests", dependencies: ["ViewinConnection", .product(name: "ViewinTransport", package: "ViewinSDK"), .product(name: "ViewinProtocol", package: "ViewinSDK")]),
         .testTarget(name: "ViewinSnapshotTests", dependencies: ["ViewinSnapshot", "ViewinTestSupport", .product(name: "ViewinProtocol", package: "ViewinSDK"), .product(name: "ZIPFoundation", package: "ZIPFoundation")]),
     ]

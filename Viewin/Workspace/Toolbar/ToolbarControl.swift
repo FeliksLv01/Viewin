@@ -31,7 +31,7 @@ struct ToolbarControl: View {
           workspace.isCapturing
             || (workspace.connectedTarget == nil)
         )
-        .accessibilityLabel("刷新")
+        .accessibilityLabel(L10n.text("刷新"))
       case "app":
         Button {
           popover.toggle()
@@ -53,8 +53,8 @@ struct ToolbarControl: View {
           } else {
             Image(systemName: "app")
           }
-        }.accessibilityLabel("App 切换")
-          .help(workspace.connectedTarget.map { "\($0.appName) · \($0.deviceName)" } ?? "切换 App")
+        }.accessibilityLabel(L10n.text("App 切换"))
+          .help(workspace.connectedTarget.map { "\($0.appName) · \($0.deviceName)" } ?? L10n.text("切换 App"))
           .disabled(workspace.isCapturing)
           .popover(isPresented: popoverBinding) {
             AppSelectionView(workspace: workspace) { target in
@@ -63,47 +63,47 @@ struct ToolbarControl: View {
             }
           }
       case "mode":
-        Picker("预览模式", selection: workspace.binding(\.viewMode)) {
+        Picker(L10n.text("预览模式"), selection: workspace.binding(\.viewMode)) {
           Image(systemName: "square").tag("2D").accessibilityLabel("2D")
           Image(systemName: "cube").tag("3D").accessibilityLabel("3D")
         }.labelsHidden().pickerStyle(.segmented)
       case "rotation":
         Toggle(isOn: workspace.binding(\.freeRotation)) { Image(systemName: "rotate.3d") }
-          .toggleStyle(.button).accessibilityLabel("自由旋转")
+          .toggleStyle(.button).accessibilityLabel(L10n.text("自由旋转"))
       case "settings":
         Button {
           WorkspaceSettingsWindow.shared.show(workspace: workspace)
         } label: {
           Image(systemName: "slider.horizontal.3")
         }
-        .accessibilityLabel("设置")
+        .accessibilityLabel(L10n.text("设置"))
       case "scale":
         HStack(spacing: 5) {
           Button {
             workspace.zoom = max(0, workspace.zoom - 0.1)
           } label: {
             Image(systemName: "minus")
-          }.accessibilityLabel("缩小")
-          Slider(value: workspace.binding(\.zoom), in: 0...1).accessibilityLabel("预览大小")
+          }.accessibilityLabel(L10n.text("缩小"))
+          Slider(value: workspace.binding(\.zoom), in: 0...1).accessibilityLabel(L10n.text("预览大小"))
           Button {
             workspace.zoom = min(1, workspace.zoom + 0.1)
           } label: {
             Image(systemName: "plus")
-          }.accessibilityLabel("放大")
+          }.accessibilityLabel(L10n.text("放大"))
         }.buttonStyle(.borderless).padding(.horizontal, 10)
       case "measure":
         Toggle(
           isOn: Binding(get: { workspace.isMeasuring }, set: { _ in workspace.toggleMeasurement() })
         ) {
           Image(systemName: "ruler")
-        }.toggleStyle(.button).accessibilityLabel("测距")
+        }.toggleStyle(.button).accessibilityLabel(L10n.text("测距"))
       default:
         Menu {
-          Button("打开快照…", action: openSnapshot)
-          Button("保存快照…", action: saveSnapshot).disabled(workspace.document == nil)
+          Button(L10n.text("打开快照…"), action: openSnapshot)
+          Button(L10n.text("保存快照…"), action: saveSnapshot).disabled(workspace.document == nil)
         } label: {
           Image(systemName: "folder")
-        }.accessibilityLabel("打开快照")
+        }.accessibilityLabel(L10n.text("打开快照"))
       }
     }
     .controlSize(.regular)

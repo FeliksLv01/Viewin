@@ -30,7 +30,7 @@ private struct MeasurementPanel: View {
         if let selected = workspace.selectedNode {
           if let hovered = workspace.hoveredNode, hovered.id != selected.id {
             if selected.windowId != hovered.windowId {
-              tutorial("rectangle.on.rectangle.slash", "不在同一窗口", "请选择同一窗口中的两个图层。")
+              tutorial("rectangle.on.rectangle.slash", L10n.text("不在同一窗口"), L10n.text("请选择同一窗口中的两个图层。"))
             } else if let a = selected.geometry?.frameInWindow,
               let b = hovered.geometry?.frameInWindow,
               let diagram = MeasurementDiagram(selected: a, hovered: b)
@@ -47,24 +47,24 @@ private struct MeasurementPanel: View {
               ).frame(height: height).background(
                 .background.secondary, in: RoundedRectangle(cornerRadius: 9))
             } else {
-              tutorial("info.circle", "无效尺寸", invalidSize(selected, hovered))
+              tutorial("info.circle", L10n.text("无效尺寸"), invalidSize(selected, hovered))
             }
           } else {
-            tutorial("cursorarrow.rays", "悬停一个图层", "测量它与已选中 \(selected.sidebarTitle) 之间的距离。")
+            tutorial("cursorarrow.rays", L10n.text("悬停一个图层"), L10n.format("测量它与已选中 %@ 之间的距离。", String(describing: selected.sidebarTitle)))
           }
         } else {
-          tutorial("cursorarrow.click", "先选择一个图层", "然后将鼠标悬停在另一个图层上测距。")
+          tutorial("cursorarrow.click", L10n.text("先选择一个图层"), L10n.text("然后将鼠标悬停在另一个图层上测距。"))
         }
         if workspace.measurementStore.mode == .temporary {
           Toggle(
-            "松开 Option 后退出测距",
+            L10n.text("松开 Option 后退出测距"),
             isOn: Binding(
               get: { workspace.measurementStore.mode == .temporary },
               set: { workspace.measurementStore.send(.cancelOnKeyUpChanged($0)) }
             )
           ).toggleStyle(.checkbox).font(.system(size: 12))
         } else {
-          Text("快捷键：按住 Option").font(.system(size: 12)).foregroundStyle(.secondary)
+          Text(L10n.text("快捷键：按住 Option")).font(.system(size: 12)).foregroundStyle(.secondary)
         }
         Spacer(minLength: 0)
       }.padding(10).frame(width: geometry.size.width, height: geometry.size.height)
@@ -85,10 +85,10 @@ private struct MeasurementPanel: View {
   }
   private func invalidSize(_ a: SnapshotNode, _ b: SnapshotNode) -> String {
     for node in [a, b] {
-      guard let frame = node.geometry?.frameInWindow else { return "\(node.sidebarTitle) 没有布局信息。" }
-      if frame.width <= 0 { return "\(node.sidebarTitle) 的宽度小于或等于 0。" }
-      if frame.height <= 0 { return "\(node.sidebarTitle) 的高度小于或等于 0。" }
+      guard let frame = node.geometry?.frameInWindow else { return L10n.format("%@ 没有布局信息。", String(describing: node.sidebarTitle)) }
+      if frame.width <= 0 { return L10n.format("%@ 的宽度小于或等于 0。", String(describing: node.sidebarTitle)) }
+      if frame.height <= 0 { return L10n.format("%@ 的高度小于或等于 0。", String(describing: node.sidebarTitle)) }
     }
-    return "无法测量这两个图层的布局。"
+    return L10n.text("无法测量这两个图层的布局。")
   }
 }

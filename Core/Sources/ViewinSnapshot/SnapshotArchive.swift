@@ -42,14 +42,14 @@ public enum SnapshotArchive {
     var total = snapshot.count
     for resource in document.snapshot.images {
       guard let data = images[resource.id], data.count <= maximumBytes else {
-        throw SnapshotIssue(message: "快照缺少图片或图片过大：\(resource.id)")
+        throw SnapshotIssue(message: L10n.format("快照缺少图片或图片过大：%@", String(describing: resource.id)))
       }
       let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
       let path = "images/\(digest).\((resource.path as NSString).pathExtension)"
       aliases[resource.path] = path
       if blobs[path] == nil {
         total += data.count
-        guard total <= maximumBytes else { throw SnapshotIssue(message: "快照资源超过大小上限。") }
+        guard total <= maximumBytes else { throw SnapshotIssue(message: L10n.text("快照资源超过大小上限。")) }
         blobs[path] = data
       }
     }
@@ -70,45 +70,45 @@ public enum SnapshotArchive {
 
   public static func read(from url: URL) throws -> Contents {
     let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-    guard size <= maximumBytes else { throw SnapshotIssue(message: "快照文件过大。") }
+    guard size <= maximumBytes else { throw SnapshotIssue(message: L10n.text("快照文件过大。")) }
     let archive = try Archive(url: url, accessMode: .read)
     var paths = Set<String>()
     var total: UInt64 = 0
     for entry in archive {
       try Task.checkCancellation()
       guard entry.type == .file, validPath(entry.path), paths.insert(entry.path).inserted,
-            paths.count <= 20_010 else { throw SnapshotIssue(message: "快照包含非法或重复的资源路径。") }
+            paths.count <= 20_010 else { throw SnapshotIssue(message: L10n.text("快照包含非法或重复的资源路径。")) }
       guard entry.uncompressedSize <= UInt64(maximumBytes) else {
-        throw SnapshotIssue(message: "快照资源过大：\(entry.path)")
+        throw SnapshotIssue(message: L10n.format("快照资源过大：%@", String(describing: entry.path)))
       }
       total += entry.uncompressedSize
-      guard total <= UInt64(maximumBytes) else { throw SnapshotIssue(message: "快照解压大小超过上限。") }
+      guard total <= UInt64(maximumBytes) else { throw SnapshotIssue(message: L10n.text("快照解压大小超过上限。")) }
     }
     func extract(_ path: String, limit: Int) throws -> Data {
       guard let entry = archive[path], entry.uncompressedSize <= UInt64(limit) else {
-        throw SnapshotIssue(message: "快照资源缺失或过大：\(path)")
+        throw SnapshotIssue(message: L10n.format("快照资源缺失或过大：%@", String(describing: path)))
       }
       var data = Data()
       let checksum = try archive.extract(entry) { chunk in
         try Task.checkCancellation()
-        guard chunk.count <= limit - data.count else { throw SnapshotIssue(message: "快照资源解压超过上限。") }
+        guard chunk.count <= limit - data.count else { throw SnapshotIssue(message: L10n.text("快照资源解压超过上限。")) }
         data.append(chunk)
       }
       guard checksum == entry.checksum, data.count == Int(entry.uncompressedSize) else {
-        throw SnapshotIssue(message: "快照资源校验失败：\(path)")
+        throw SnapshotIssue(message: L10n.format("快照资源校验失败：%@", String(describing: path)))
       }
       return data
     }
     let manifest = try JSONDecoder().decode(Manifest.self, from: extract("manifest.json", limit: 2_000_000))
     guard ["app.viewin.snapshot", "app.uiinspector.snapshot", "app.inview.snapshot"].contains(manifest.format), manifest.version == 1,
-          manifest.snapshot == "snapshot.json" else { throw SnapshotIssue(message: "不支持的 Viewin 文件格式。") }
+          manifest.snapshot == "snapshot.json" else { throw SnapshotIssue(message: L10n.text("不支持的 Viewin 文件格式。")) }
     let document = try SnapshotDocument(data: extract(manifest.snapshot, limit: maximumBytes))
     var loaded: [String: Data] = [:]
     var images: [String: Data] = [:]
     for resource in document.snapshot.images {
       try Task.checkCancellation()
       guard let path = manifest.images[resource.path], validPath(path), path.hasPrefix("images/") else {
-        throw SnapshotIssue(message: "快照图片引用无效：\(resource.id)")
+        throw SnapshotIssue(message: L10n.format("快照图片引用无效：%@", String(describing: resource.id)))
       }
       if loaded[path] == nil { loaded[path] = try extract(path, limit: maximumBytes) }
       images[resource.id] = loaded[path]

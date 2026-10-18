@@ -7,11 +7,11 @@ import ViewinWorkspace
 
 extension InspectorPanel {
   func matches(_ group: PropertyGroup) -> Bool {
-    search.isEmpty || group.title.localizedCaseInsensitiveContains(search)
+    search.isEmpty || group.title.localizedCaseInsensitiveContains(search) || L10n.text(group.title).localizedCaseInsensitiveContains(search)
       || group.properties.contains { matches($0) }
   }
   func matches(_ property: NodeProperty) -> Bool {
-    search.isEmpty || property.title.localizedCaseInsensitiveContains(search)
+    search.isEmpty || property.title.localizedCaseInsensitiveContains(search) || L10n.text(property.title).localizedCaseInsensitiveContains(search)
       || property.value.containsInspectorText(search)
       || (property.presentation?.sectionTitle?.localizedCaseInsensitiveContains(search) ?? false)
       || (property.presentation?.kind.localizedCaseInsensitiveContains(search) ?? false)
@@ -53,7 +53,7 @@ extension InspectorPanel {
             && section.properties[0].presentation?.kind != "enum")
             || section.properties[0].presentation?.kind == "boolean")
         if let title = section.title, !title.isEmpty, !singleInline {
-          Text(title == "Frame" ? "Frame · 父坐标" : title == "Bounds" ? "Bounds · 本地坐标" : title)
+          Text(title == "Frame" ? L10n.text("Frame · 父坐标") : title == "Bounds" ? L10n.text("Bounds · 本地坐标") : title)
             .font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
         }
         if ["shadow", "v_s"].contains(section.id), section.properties.count == 5,
@@ -81,34 +81,41 @@ extension InspectorPanel {
     }
   }
 
-  @ViewBuilder func propertyRow(_ property: NodeProperty, sectionTitle: String?)
+  @ViewBuilder func propertyRow(_ property: NodeProperty, sectionTitle: String?, depth: Int = 0)
     -> some View
   {
     if property.availability != "available" {
-      Label(property.reason ?? "暂不可用", systemImage: "info.circle").font(.caption)
-        .foregroundStyle(.secondary)
-    } else if property.presentation?.kind == "boolean", case .bool(let enabled) = property.value {
+      HStack {
+        Text(L10n.text(property.title))
+        Spacer(minLength: 4)
+        Label(L10n.text("不可用"), systemImage: "info.circle")
+      }.font(.caption).foregroundStyle(.secondary).help(property.reason.map { L10n.text($0) } ?? L10n.text("暂不可用"))
+    } else if property.id == "eventHandlers" {
+      ForEach(property.value.elements.enumerated().compactMap { EventHandlerPresentation(id: $0.offset, value: $0.element) }) { event in
+        InspectorEventGroup(event: event, compact: true)
+      }
+    } else if case .bool(let enabled) = property.value {
       HStack(spacing: 6) {
         Image(systemName: enabled ? "checkmark.square.fill" : "square")
-          .foregroundStyle(enabled ? Color.accentColor : Color.secondary)
-        Text(property.title).lineLimit(2)
+          .foregroundStyle(enabled ? Color.primary : Color.secondary)
+        Text(L10n.text(property.title)).lineLimit(2)
       }.frame(minHeight: 20).accessibilityElement(children: .ignore)
-        .accessibilityLabel(property.title).accessibilityValue(enabled ? "是，只读" : "否，只读")
+        .accessibilityLabel(L10n.text(property.title)).accessibilityValue(enabled ? L10n.text("是，只读") : L10n.text("否，只读"))
     } else if property.presentation?.kind == "color" {
       if property.title != sectionTitle && property.title != "ShadowColor"
         && property.title != "BorderColor"
       {
-        Text(property.title).font(.caption).foregroundStyle(.secondary)
+        Text(L10n.text(property.title)).font(.caption).foregroundStyle(.secondary)
       }
       color(property.value.fields)
     } else if property.presentation?.kind == "enum" {
       if property.title != sectionTitle {
-        Text(property.title).font(.caption).foregroundStyle(.secondary)
+        Text(L10n.text(property.title)).font(.caption).foregroundStyle(.secondary)
       }
       valueField(
         InspectorValues.enumText(type: property.presentation?.enumType, value: property.value))
     } else if property.value.numericValue != nil {
-      valueField(property.value.inspectorText, title: property.title)
+      valueField(property.value.inspectorText, title: L10n.text(property.title))
     } else if property.presentation?.kind == "classChain" {
       ForEach(Array(property.value.elements.enumerated()), id: \.offset) { _, chain in
         Text(chain.elements.map(\.inspectorText).joined(separator: " → "))
@@ -123,13 +130,15 @@ extension InspectorPanel {
       }
       geometryGrid(property.value.fields, keys: componentKeys(kind))
     } else {
-      if property.title != sectionTitle {
-        Text(fieldTitle(property.title)).font(.caption).foregroundStyle(.secondary)
-      }
-      if case .string(let text) = property.value {
-        valueField(text.isEmpty ? "空字符串" : text, multiline: true)
+      if case .string(let text) = property.value, text.count < 32,
+         !["text", "hint", "fontName"].contains(property.id), !text.contains("\n") {
+        valueField(text, title: fieldTitle(property.title))
       } else {
-        structured(property.value)
+        if property.title != sectionTitle {
+          Text(fieldTitle(property.title)).font(.caption).foregroundStyle(.secondary)
+        }
+        if case .string(let text) = property.value { valueField(text, multiline: true) }
+        else { structured(property.value, depth: depth) }
       }
     }
   }
@@ -138,12 +147,12 @@ extension InspectorPanel {
     -> some View
   {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
-      Text(value).textSelection(.enabled).lineLimit(multiline ? nil : 1)
+      Text(value).textSelection(.enabled).lineLimit(multiline ? 6 : 1)
         .fixedSize(horizontal: false, vertical: true)
       Spacer(minLength: 0)
       if let title { Text(title).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1) }
-    }.padding(.horizontal, 8).padding(.vertical, 6)
-      .frame(maxWidth: .infinity, minHeight: 28, alignment: .leading)
+    }.padding(.horizontal, 8).padding(.vertical, 5)
+      .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
       .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 5))
       .help(title.map { "\($0): \(value)" } ?? value)
   }
@@ -196,7 +205,7 @@ extension InspectorPanel {
       Menu {
         ForEach(sections, id: \.0) { id, title in
           Toggle(
-            title,
+            L10n.text(title),
             isOn: Binding(
               get: { sectionVisible(id) },
               set: { value in
@@ -206,12 +215,12 @@ extension InspectorPanel {
               }))
         }
         Divider()
-        Button("显示全部属性") {
+        Button(L10n.text("显示全部属性")) {
           var settings = sectionSettings
           for (id, _) in sections { settings[id] = true }
           sectionOverrides = (try? JSONEncoder().encode(settings)) ?? Data()
         }
-        Button("恢复默认属性") {
+        Button(L10n.text("恢复默认属性")) {
           var settings = sectionSettings
           for (id, _) in sections { settings.removeValue(forKey: id) }
           sectionOverrides = (try? JSONEncoder().encode(settings)) ?? Data()
@@ -219,7 +228,7 @@ extension InspectorPanel {
       } label: {
         Image(systemName: "ellipsis")
       }
-      .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().accessibilityLabel("管理显示属性"))
+      .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().accessibilityLabel(L10n.text("管理显示属性")))
   }
 
 }

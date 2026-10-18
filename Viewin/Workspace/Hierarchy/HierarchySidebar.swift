@@ -16,7 +16,7 @@ struct HierarchySidebar: View {
       HStack(spacing: 6) {
         Image(systemName: "doc.text")
         Text(
-          "\(document.snapshot.nodes.count) 个节点 · 协议 \(document.snapshot.protocolVersion.major).\(document.snapshot.protocolVersion.minor)"
+          L10n.format("%@ 个节点 · 协议 %@.%@", String(describing: document.snapshot.nodes.count), String(describing: document.snapshot.protocolVersion.major), String(describing: document.snapshot.protocolVersion.minor))
         )
         Spacer()
       }.font(.caption).foregroundStyle(.secondary).padding(12)
@@ -31,10 +31,10 @@ private struct HierarchyControls: View {
   var body: some View {
     VStack(spacing: 0) {
       HStack {
-        Text("层级").font(.headline)
+        Text(L10n.text("层级")).font(.headline)
         Spacer()
         Menu {
-          let levels = ["只显示窗口", "展开至控制器", "展开主要层级", "展开大部分", "全部展开"]
+          let levels = [L10n.text("只显示窗口"), L10n.text("展开至控制器"), L10n.text("展开主要层级"), L10n.text("展开大部分"), L10n.text("全部展开")]
           ForEach(0..<levels.count, id: \.self) { level in
             Button {
               workspace.setExpansionLevel(level)
@@ -47,27 +47,27 @@ private struct HierarchyControls: View {
             }
           }
           Divider()
-          Picker("双击行为", selection: workspace.binding(\.doubleClickBehavior)) {
-            Text("展开 / 收起").tag("collapse")
-            Text("聚焦").tag("focus")
+          Picker(L10n.text("双击行为"), selection: workspace.binding(\.doubleClickBehavior)) {
+            Text(L10n.text("展开 / 收起")).tag("collapse")
+            Text(L10n.text("聚焦")).tag("focus")
           }
-          Toggle("显示隐藏的视图", isOn: workspace.binding(\.showHidden))
-          Button("恢复本次隐藏的截图") { workspace.restorePreviews() }
+          Toggle(L10n.text("显示隐藏的视图"), isOn: workspace.binding(\.showHidden))
+          Button(L10n.text("恢复本次隐藏的截图")) { workspace.restorePreviews() }
             .disabled(workspace.hiddenPreviewIds.isEmpty)
         } label: {
           Image(systemName: "ellipsis.circle")
         }
-        .menuStyle(.borderlessButton).fixedSize().accessibilityLabel("层级菜单")
+        .menuStyle(.borderlessButton).fixedSize().accessibilityLabel(L10n.text("层级菜单"))
       }.padding(.horizontal, 16).padding(.vertical, 15)
       if let root = workspace.focusRootId {
         HStack {
-          Text("聚焦：\(document.node(root)?.sidebarTitle ?? root)").lineLimit(1)
+          Text(L10n.format("聚焦：%@", String(describing: document.node(root)?.sidebarTitle ?? root))).lineLimit(1)
           Spacer()
-          Button("退出聚焦") { workspace.endScope() }
+          Button(L10n.text("退出聚焦")) { workspace.endScope() }
         }.font(.caption).padding(.horizontal, 12).padding(.bottom, 12)
       } else {
         HStack(spacing: 4) {
-          TextField("搜索类型、文字或属性名", text: workspace.binding(\.search))
+          TextField(L10n.text("搜索类型、文字或属性名"), text: workspace.binding(\.search))
             .textFieldStyle(.roundedBorder).onExitCommand { workspace.endScope() }
           if !workspace.search.isEmpty {
             Button {
@@ -75,7 +75,7 @@ private struct HierarchyControls: View {
             } label: {
               Image(systemName: "xmark.circle.fill")
             }
-            .buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel("清除搜索")
+            .buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel(L10n.text("清除搜索"))
           }
         }.padding(.horizontal, 12).padding(.bottom, 12)
       }

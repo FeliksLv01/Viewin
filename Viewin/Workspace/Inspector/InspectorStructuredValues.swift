@@ -21,7 +21,7 @@ extension InspectorPanel {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 5) {
       ForEach(keys, id: \.self) { key in
         HStack {
-          Text(["width": "W", "height": "H", "x": "X", "y": "Y"][key] ?? key).foregroundStyle(
+          Text(["width": "W", "height": "H", "x": "X", "y": "Y"][key] ?? L10n.text(key)).foregroundStyle(
             .secondary)
           Spacer(minLength: 4)
           Text(fields[key]?.inspectorText ?? "—").monospacedDigit().textSelection(.enabled)
@@ -41,13 +41,13 @@ extension InspectorPanel {
       ? (colorFormat == "hex" ? InspectorValues.hexColor(fields) : InspectorValues.rgbaText(fields))
       : "nil"
     return Menu {
-      Picker("显示格式", selection: Binding(get: { colorFormat }, set: { colorFormat = $0 })) {
+      Picker(L10n.text("显示格式"), selection: Binding(get: { colorFormat }, set: { colorFormat = $0 })) {
         Text("RGBA").tag("rgba")
         Text("HEX").tag("hex")
       }.pickerStyle(.inline)
       Divider()
-      Button("复制 RGBA") { copy(hasColor ? InspectorValues.rgbaText(fields) : "nil") }
-      Button("复制 HEX") { copy(hasColor ? InspectorValues.hexColor(fields) : "nil") }
+      Button(L10n.text("复制 RGBA")) { copy(hasColor ? InspectorValues.rgbaText(fields) : "nil") }
+      Button(L10n.text("复制 HEX")) { copy(hasColor ? InspectorValues.hexColor(fields) : "nil") }
     } label: {
       Text("")
     }.menuStyle(.borderlessButton).menuIndicator(.hidden)
@@ -68,7 +68,7 @@ extension InspectorPanel {
           .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 5))
           .allowsHitTesting(false).accessibilityHidden(true)
       }
-      .accessibilityLabel("颜色 \(description)，切换显示格式")
+      .accessibilityLabel(L10n.format("颜色 %@，切换显示格式", String(describing: description)))
   }
 
   func copy(_ text: String) {
@@ -78,9 +78,13 @@ extension InspectorPanel {
 
   /// Recursion is erased at the boundary, so arbitrary nested data stays readable as rows.
   func structured(_ value: JSONValue, depth: Int = 0) -> AnyView {
-    guard depth < 32 else { return AnyView(Text("嵌套内容过深").foregroundStyle(.secondary)) }
+    guard depth < 32 else { return AnyView(Text(L10n.text("嵌套内容过深")).foregroundStyle(.secondary)) }
     switch value {
     case .array(let items):
+      if items.allSatisfy({ $0.fields.isEmpty && $0.elements.isEmpty }) {
+        return AnyView(Text(items.map(\.inspectorText).joined(separator: ", "))
+          .textSelection(.enabled).fixedSize(horizontal: false, vertical: true))
+      }
       if !items.isEmpty && items.allSatisfy({ $0.fields["type"] == .string("constraint") }) {
         let sorted = InspectorValues.sortedConstraints(items)
         return AnyView(
@@ -90,16 +94,38 @@ extension InspectorPanel {
       }
       return AnyView(
         VStack(alignment: .leading, spacing: 7) {
-          if items.isEmpty { Text("无").foregroundStyle(.secondary) }
+          if items.isEmpty { Text(L10n.text("无")).foregroundStyle(.secondary) }
           ForEach(Array(items.enumerated()), id: \.offset) { index, item in
             VStack(alignment: .leading, spacing: 4) {
-              if items.count > 1 { Text("\(index + 1)").font(.caption2).foregroundStyle(.tertiary) }
+              if items.count > 1 && item.fields["name"] == nil { Text("\(index + 1)").font(.caption2).foregroundStyle(.tertiary) }
               structured(item, depth: depth + 1)
             }
             if index < items.count - 1 { Divider() }
           }
         })
     case .object(let fields):
+      if Set(["red", "green", "blue"]).isSubset(of: Set(fields.keys)) {
+        return AnyView(color(fields))
+      }
+      for (keys, kind) in [(["x", "y", "width", "height"], "rect"), (["top", "left", "bottom", "right"], "insets"), (["x", "y"], "point"), (["width", "height"], "size")] {
+        if Set(keys) == Set(fields.keys) {
+          return AnyView(geometryGrid(fields, keys: componentKeys(kind)))
+        }
+      }
+      if case .string(let name) = fields["name"], case .object(let values) = fields["properties"] {
+        return AnyView(VStack(alignment: .leading, spacing: 5) {
+          Text(name).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+          if let value = fields["value"] { structured(value, depth: depth + 1) }
+          ForEach(values.keys.sorted(), id: \.self) { key in
+            if values[key] != fields["value"] {
+              propertyRow(.init(id: key, title: fieldTitle(key), value: values[key]!, availability: "available", reason: nil), sectionTitle: nil, depth: depth + 1)
+            }
+          }
+        })
+      }
+      if case .string(let owner) = fields["ownerType"], case .string(let name) = fields["name"], fields["kind"] == .string("ivar") {
+        return AnyView(Text("(\(owner) *) → \(name)").font(.system(size: 11)).textSelection(.enabled).fixedSize(horizontal: false, vertical: true))
+      }
       if fields["type"] == .string("objectReference") { return AnyView(reference(fields)) }
       if fields["type"] == .string("constraint") { return AnyView(constraint(fields)) }
       if fields["type"] == .string("image") {
@@ -108,16 +134,13 @@ extension InspectorPanel {
         {
           return AnyView(Image(nsImage: image).resizable().scaledToFit().frame(maxHeight: 150))
         }
-        return AnyView(Text("图片不可用").foregroundStyle(.secondary))
+        return AnyView(Text(L10n.text("图片不可用")).foregroundStyle(.secondary))
       }
       return AnyView(
         VStack(alignment: .leading, spacing: 6) {
-          if fields.isEmpty { Text("无").foregroundStyle(.secondary) }
+          if fields.isEmpty { Text(L10n.text("无")).foregroundStyle(.secondary) }
           ForEach(fields.keys.sorted(), id: \.self) { key in
-            VStack(alignment: .leading, spacing: 3) {
-              Text(fieldTitle(key)).font(.caption).foregroundStyle(.secondary)
-              structured(fields[key]!, depth: depth + 1).padding(.leading, 8)
-            }
+            propertyRow(.init(id: key, title: fieldTitle(key), value: fields[key]!, availability: "available", reason: nil), sectionTitle: nil, depth: depth + 1)
           }
         })
     default:
@@ -134,7 +157,7 @@ extension InspectorPanel {
     }
     return VStack(alignment: .leading, spacing: 4) {
       if id == "0" {
-        Text("None").foregroundStyle(.secondary)
+        Text(L10n.text("None")).foregroundStyle(.secondary)
       } else if let target {
         Button {
           workspace.select(target)
@@ -143,7 +166,7 @@ extension InspectorPanel {
             fields["className"]?.inspectorText ?? target.typeName, systemImage: "arrow.up.right")
         }.buttonStyle(.link)
       } else {
-        Text(fields["className"]?.inspectorText ?? "对象")
+        Text(fields["className"]?.inspectorText ?? L10n.text("对象"))
       }
       if id != "0" {
         Text(address).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(
@@ -157,18 +180,18 @@ extension InspectorPanel {
         Text(InspectorValues.constraintSummary(fields)).font(.system(size: 12, design: .monospaced))
           .textSelection(.enabled)
         if fields["effective"] == .bool(false) {
-          Text("This constraint does not affect the selected view's layout.").font(.caption)
+          Text(L10n.text("This constraint does not affect the selected view's layout.")).font(.caption)
             .foregroundStyle(.secondary)
         }
         Divider()
-        Text("First Item").font(.caption.weight(.semibold))
+        Text(L10n.text("First Item")).font(.caption.weight(.semibold))
         if let first = fields["firstItem"], first != .null { reference(first.fields) }
         scalar("First Attribute", InspectorValues.layoutAttribute(fields["firstAttribute"]))
-        Text("Second Item").font(.caption.weight(.semibold))
+        Text(L10n.text("Second Item")).font(.caption.weight(.semibold))
         if let second = fields["secondItem"], second != .null {
           reference(second.fields)
         } else {
-          Text("None").foregroundStyle(.secondary)
+          Text(L10n.text("None")).foregroundStyle(.secondary)
         }
         scalar("Second Attribute", InspectorValues.layoutAttribute(fields["secondAttribute"]))
         ForEach(
@@ -184,10 +207,11 @@ extension InspectorPanel {
   }
   func fieldTitle(_ key: String) -> String {
     [
-      "memberReferences": "成员引用", "eventHandlers": "事件与手势", "listPosition": "列表位置", "trace": "来源",
-      "ownerType": "所属类型", "name": "成员名", "kind": "种类", "section": "Section", "item": "Item / Row",
-      "enabled": "启用", "delegate": "Delegate", "targetActions": "Target / Action",
-      "target": "Target", "action": "Action", "event": "事件", "typeName": "类型",
-    ][key] ?? key
+      "memberReferences": L10n.text("成员引用"), "eventHandlers": L10n.text("事件与手势"), "listPosition": L10n.text("列表位置"), "trace": L10n.text("来源"),
+      "fontSize": "Size", "fontWeight": "Weight", "letterSpacing": "Letter Spacing", "lineHeight": "Line Height", "color": "Color", "style": "Text Style", "text": "Text",
+      "ownerType": L10n.text("所属类型"), "name": L10n.text("成员名"), "kind": L10n.text("种类"), "section": "Section", "item": "Item / Row",
+      "enabled": L10n.text("启用"), "delegate": "Delegate", "targetActions": "Target / Action",
+      "target": "Target", "action": "Action", "event": L10n.text("事件"), "typeName": L10n.text("类型"),
+    ][key] ?? L10n.text(key)
   }
 }

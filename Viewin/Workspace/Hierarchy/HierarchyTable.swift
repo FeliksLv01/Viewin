@@ -254,34 +254,34 @@ struct HierarchyTable: NSViewRepresentable {
         item.toolTip = reason
         menu.addItem(item)
       }
-      add("聚焦") { [weak workspace] in workspace?.focus(node.id) }
+      add(L10n.text("聚焦")) { [weak workspace] in workspace?.focus(node.id) }
       if workspace.connectedTarget != nil {
-        add("打印对象", enabled: false, reason: "远程对象控制台尚未接入") {}
+        add(L10n.text("打印对象"), enabled: false, reason: L10n.text("远程对象控制台尚未接入")) {}
         menu.addItem(.separator())
-        add("刷新图层", enabled: false, reason: "当前连接只支持完整快照采集，局部刷新尚未接入") {}
-        add("刷新图层及其子层级", enabled: false, reason: "局部刷新尚未接入") {}
+        add(L10n.text("刷新图层"), enabled: false, reason: L10n.text("当前连接只支持完整快照采集，局部刷新尚未接入")) {}
+        add(L10n.text("刷新图层及其子层级"), enabled: false, reason: L10n.text("局部刷新尚未接入")) {}
       }
       let texts = copyTexts(node)
       if !texts.isEmpty { menu.addItem(.separator()) }
       for text in texts {
-        add("复制文本“\(text)”") {
+        add(L10n.format("复制文本“%@”", String(describing: text))) {
           NSPasteboard.general.clearContents()
           NSPasteboard.general.setString(text, forType: .string)
         }
       }
       if !node.childIds.isEmpty {
         menu.addItem(.separator())
-        add("递归展开") { [weak workspace] in workspace?.expandSubtree(node.id) }
-        add("收起子层级") { [weak workspace] in workspace?.collapseSubtree(node.id) }
+        add(L10n.text("递归展开")) { [weak workspace] in workspace?.expandSubtree(node.id) }
+        add(L10n.text("收起子层级")) { [weak workspace] in workspace?.collapseSubtree(node.id) }
       }
       if node.geometry != nil {
         menu.addItem(.separator())
         let hidden = workspace.isPreviewHidden(node.id)
-        add(hidden ? "显示截图" : "本次隐藏截图") { [weak workspace] in workspace?.togglePreview(node.id) }
+        add(hidden ? L10n.text("显示截图") : L10n.text("本次隐藏截图")) { [weak workspace] in workspace?.togglePreview(node.id) }
       }
       if let image = (node.groupImageId ?? node.imageId).flatMap({ workspace.nodeImages[$0] }) {
         menu.addItem(.separator())
-        add("导出截图…") { [weak self] in self?.export(image, node: node) }
+        add(L10n.text("导出截图…")) { [weak self] in self?.export(image, node: node) }
       }
       return menu
     }
@@ -317,7 +317,7 @@ struct HierarchyTable: NSViewRepresentable {
           guard let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),
             let png = bitmap.representation(using: .png, properties: [:])
           else {
-            throw SnapshotIssue(message: "无法编码 PNG 截图。")
+            throw SnapshotIssue(message: L10n.text("无法编码 PNG 截图。"))
           }
           try png.write(to: url, options: .atomic)
         } catch { workspace?.errorMessage = error.localizedDescription }

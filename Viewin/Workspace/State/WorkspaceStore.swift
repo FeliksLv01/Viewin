@@ -110,6 +110,12 @@ import UniformTypeIdentifiers
   }
   func open(_ url: URL) { store.send(.open(url)) }
   func select(_ node: SnapshotNode) { hierarchyStore.send(.reveal(node.id)) }
+  func selectRelated(_ node: SnapshotNode) {
+    if searchIncludedIds?.contains(node.id) == false { search = "" }
+    if let root = focusRootId, root != node.id,
+       document?.ancestors(of: node).contains(where: { $0.id == root }) == false { endScope() }
+    select(node)
+  }
   func hover(_ id: String?) {
     guard hoveredId != id else { return }
     hierarchyStore.send(.hover(id))

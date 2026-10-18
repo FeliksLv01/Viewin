@@ -12,7 +12,7 @@ public struct WorkspaceClient: Sendable {
 
 extension WorkspaceClient {
   public static let liveValue = Self(
-    discover: { await InspectionClient.discoverSimulators() },
+    discover: { await InspectionClient.discoverDevices() },
     capture: { target in
       let capture = try await InspectionClient.capture(target)
       try Task.checkCancellation()

@@ -242,9 +242,9 @@ struct ExplodedPreview: NSViewRepresentable {
         { updateHighlight(id) }
       }
       SCNTransaction.commit()
-      view?.setAccessibilityLabel(is3D ? "3D 拆层预览" : "2D 布局预览")
+      view?.setAccessibilityLabel(is3D ? L10n.text("3D 拆层预览") : L10n.text("2D 布局预览"))
       view?.setAccessibilityValue(
-        "可见图层 \(surfaces.count)，选中 \(selectedId ?? "无")，悬停 \(hoveredId ?? "无")，旋转角度 \(Int(input.cameraState.yaw * 180 / .pi))，倾斜 \(Int(input.cameraState.pitch * 180 / .pi))，平移 \(input.cameraState.translationX.formatted(.number.precision(.fractionLength(2)))) / \(input.cameraState.translationY.formatted(.number.precision(.fractionLength(2))))，大小 \(input.cameraState.clampedScale.formatted(.number.precision(.fractionLength(2))))"
+        L10n.format("可见图层 %@，选中 %@，悬停 %@，旋转角度 %@，倾斜 %@，平移 %@ / %@，大小 %@", String(describing: surfaces.count), String(describing: selectedId ?? L10n.text("无")), String(describing: hoveredId ?? L10n.text("无")), String(describing: Int(input.cameraState.yaw * 180 / .pi)), String(describing: Int(input.cameraState.pitch * 180 / .pi)), String(describing: input.cameraState.translationX.formatted(.number.precision(.fractionLength(2)))), String(describing: input.cameraState.translationY.formatted(.number.precision(.fractionLength(2)))), String(describing: input.cameraState.clampedScale.formatted(.number.precision(.fractionLength(2)))))
       )
     }
     func updateHighlights() { for id in layers.keys { updateHighlight(id) } }

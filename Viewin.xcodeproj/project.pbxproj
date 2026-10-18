@@ -11,6 +11,8 @@
 		A10000000000000000000002 /* ViewinSnapshot in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000004 /* ViewinSnapshot */; };
 		A10000000000000000000006 /* ViewinConnection in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000007 /* ViewinConnection */; };
 		A30000000000000000000001 /* ViewinWorkspace in Frameworks */ = {isa = PBXBuildFile; productRef = A30000000000000000000002 /* ViewinWorkspace */; };
+		F52000000000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F52000000000000000000003 /* Sparkle */; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				A30000000000000000000001 /* ViewinWorkspace in Frameworks */,
+				F52000000000000000000001 /* Sparkle in Frameworks */,
 				A10000000000000000000001 /* ViewinProtocol in Frameworks */,
 				A10000000000000000000002 /* ViewinSnapshot in Frameworks */,
 				A10000000000000000000006 /* ViewinConnection in Frameworks */,
@@ -78,6 +81,7 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				F51000000000000000000001 /* Embed CLI */,
 			);
 			buildRules = (
 			);
@@ -87,6 +91,7 @@
 			name = Viewin;
 			packageProductDependencies = (
 				A30000000000000000000002 /* ViewinWorkspace */,
+				F52000000000000000000003 /* Sparkle */,
 				A10000000000000000000003 /* ViewinProtocol */,
 				A10000000000000000000004 /* ViewinSnapshot */,
 				A10000000000000000000007 /* ViewinConnection */,
@@ -115,11 +120,13 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				"zh-Hans",
 				Base,
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				F52000000000000000000005 /* Sparkle */,
                 A40000000000000000000001 /* ViewinSDK */,
 				A10000000000000000000005 /* XCLocalSwiftPackageReference "Core" */,
 			);
@@ -140,6 +147,21 @@
 			);
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F51000000000000000000001 /* Embed CLI */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = ();
+			inputPaths = ();
+			name = "Embed CLI";
+			outputPaths = ("$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/viewin",);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/embed-cli.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		000000000000000120000000 /* Sources */ = {
@@ -403,7 +425,20 @@
 		A40000000000000000000001 /* ViewinSDK */ = {isa = XCLocalSwiftPackageReference; relativePath = ../ViewinSDK; };
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		F52000000000000000000005 /* Sparkle */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {kind = exactVersion; version = 2.10.0; };
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		F52000000000000000000003 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F52000000000000000000005 /* Sparkle */;
+			productName = Sparkle;
+		};
 		A10000000000000000000003 /* ViewinProtocol */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A40000000000000000000001 /* ViewinSDK */;

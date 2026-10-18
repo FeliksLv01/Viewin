@@ -2,6 +2,11 @@ import XCTest
 @testable import ViewinConnection
 
 @MainActor final class DiscoveryTests: XCTestCase {
+  func testADBDiscoveryOnlyIncludesReadyAuthorizedDevices() {
+    let output = "List of devices attached\nemulator-5554\tdevice\nphone\tunauthorized\noffline-phone\toffline\n10.0.0.2:5555 device product:example\n"
+    XCTAssertEqual(AndroidBridge.readySerials(output), ["emulator-5554", "10.0.0.2:5555"])
+  }
+
   func testProbesStartTogetherAndResultsAreSorted() async {
     let started = expectation(description: "Every probe starts before any finishes")
     started.expectedFulfillmentCount = 3

@@ -43,7 +43,7 @@ final class InspectorValuesTests: XCTestCase {
   }
   func testNoCollectionIsPrintedAsJSONAndSearchFindsNestedText() {
     let value = JSONValue.object(["targets": .array([.object(["action": .string("tappedCard:")])])])
-    XCTAssertEqual(value.inspectorText, "1 个属性")
+    XCTAssertEqual(value.inspectorText, L10n.format("%@ 个属性", "1"))
     XCTAssertTrue(value.containsInspectorText("TappedCard"))
     XCTAssertFalse(value.containsInspectorText("missing"))
   }

@@ -20,7 +20,7 @@ import ViewinSnapshot
           $0 + 1 < args.count ? args[$0 + 1] : nil
         } ?? "viewin"
       guard ["viewin", "json"].contains(format) else {
-        throw SnapshotIssue(message: "不支持的格式，请使用 viewin 或 json。")
+        throw SnapshotIssue(message: L10n.text("不支持的格式，请使用 viewin 或 json。"))
       }
       let port = args.firstIndex(of: "--port").flatMap {
         $0 + 1 < args.count ? UInt16(args[$0 + 1]) : nil
@@ -29,14 +29,14 @@ import ViewinSnapshot
       if let port {
         targets = [try await InspectionClient.target(port: port)]
       } else {
-        targets = await InspectionClient.discoverSimulators()
+        targets = await InspectionClient.discoverDevices()
       }
       if args.contains("--list") {
         for target in targets { writeOutput("\(target.port)\t\(target.appName)\t\(target.deviceName)") }
         return
       }
       guard let target = targets.first else {
-        throw SnapshotIssue(message: "没有找到前台 Viewin SDK App。请先运行 Demo。")
+        throw SnapshotIssue(message: L10n.text("没有找到前台 Viewin SDK App。请先运行 Demo。"))
       }
       let destination =
         args.firstIndex(of: "--output").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }

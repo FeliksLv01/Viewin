@@ -6,6 +6,21 @@ import XCTest
 @testable import ViewinSnapshot
 
 final class HierarchyPresentationTests: XCTestCase {
+  func testRenderingBranchIsInitiallyHiddenButCanBeShown() throws {
+    var object = try XCTUnwrap(JSONSerialization.jsonObject(with: ExampleSnapshot.ios.data()) as? [String: Any])
+    var nodes = object["nodes"] as! [[String: Any]]
+    let index = try XCTUnwrap(nodes.firstIndex { $0["id"] as? String == "card" })
+    nodes[index]["framework"] = "swiftuiRendering"
+    nodes[index]["identifiers"] = ["renderingRoot": "true"]
+    object["nodes"] = nodes
+    let document = try SnapshotDocument(data: JSONSerialization.data(withJSONObject: object))
+    let hierarchy = HierarchyPresentation(document: document)
+    let expanded = hierarchy.initialExpansion()
+    XCTAssertEqual(hierarchy.defaultHiddenPreviewIds, ["card"])
+    XCTAssertFalse(hierarchy.surfaces(expanded: expanded, hiddenPreviewIds: hierarchy.defaultHiddenPreviewIds).contains { $0.node.id == "card" })
+    XCTAssertTrue(hierarchy.surfaces(expanded: expanded, hiddenPreviewIds: []).contains { $0.node.id == "card" })
+  }
+
   func testFloatingBarDefaultHidesEntireSubtreeAndCanRestore() throws {
     var object = try XCTUnwrap(
       JSONSerialization.jsonObject(with: ExampleSnapshot.ios.data()) as? [String: Any])

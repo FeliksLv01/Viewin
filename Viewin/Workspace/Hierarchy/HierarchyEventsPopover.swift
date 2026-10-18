@@ -49,7 +49,7 @@ private struct EventContents: View {
       VStack(alignment: .leading, spacing: 0) {
         ForEach(events) { event in
           if event.id != events.first?.id { Divider().padding(.leading, 28).padding(.trailing, 16) }
-          EventGroup(event: event)
+          InspectorEventGroup(event: event)
         }
       }
     }
@@ -58,8 +58,9 @@ private struct EventContents: View {
   }
 }
 
-private struct EventGroup: View {
+struct InspectorEventGroup: View {
   let event: EventHandlerPresentation
+  var compact = false
 
   var body: some View {
     HStack(alignment: .top, spacing: 8) {
@@ -77,7 +78,7 @@ private struct EventGroup: View {
           ForEach(Array(event.rows.enumerated()), id: \.offset) { _, row in
             GridRow(alignment: .top) {
               Text(row.label).foregroundStyle(.secondary)
-                .frame(width: 78, alignment: .trailing)
+                .frame(width: compact ? 54 : 78, alignment: .trailing)
               Text(row.value).textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -86,6 +87,6 @@ private struct EventGroup: View {
         }.font(.system(size: 12))
       }.frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(.vertical, 10).padding(.leading, 8).padding(.trailing, 16)
+    .padding(.vertical, compact ? 5 : 10).padding(.leading, compact ? 0 : 8).padding(.trailing, compact ? 0 : 16)
   }
 }

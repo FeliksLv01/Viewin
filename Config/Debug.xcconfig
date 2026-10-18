@@ -3,3 +3,6 @@
 // Keep the development app distinguishable and installable alongside Release.
 PRODUCT_NAME = Viewin Debug
 PRODUCT_BUNDLE_IDENTIFIER = com.felikslv.Viewin.debug
+
+// Never replace the development app with a public Release build.
+VIEWIN_ENABLE_UPDATES = NO

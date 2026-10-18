@@ -29,26 +29,30 @@ struct InspectorCard<Content: View>: View {
 
   var body: some View {
     if let store {
-      DisclosureGroup(
-        isExpanded: Binding(
-          get: { query.isEmpty ? store.expanded : store.searchExpanded },
-          set: { store.send(query.isEmpty ? .expandedChanged($0) : .searchExpandedChanged($0)) }
-        )
-      ) {
-        VStack(alignment: .leading, spacing: 9) { content }.frame(
-          maxWidth: .infinity, alignment: .leading
-        ).padding(.top, 8)
-      } label: {
-        HStack {
-          Label(title, systemImage: icon).font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(
-              .primary)
-          Spacer(minLength: 4)
+      let expanded = query.isEmpty ? store.expanded : store.searchExpanded
+      VStack(alignment: .leading, spacing: 0) {
+        HStack(spacing: 0) {
+          Button {
+            store.send(query.isEmpty ? .expandedChanged(!expanded) : .searchExpandedChanged(!expanded))
+          } label: {
+            HStack(spacing: 6) {
+              Image(systemName: expanded ? "chevron.down" : "chevron.right")
+                .font(.system(size: 10, weight: .semibold)).frame(width: 10)
+              Image(systemName: icon).frame(width: 14).foregroundStyle(.secondary)
+              Text(L10n.text(title)).font(.system(size: 12, weight: .semibold))
+              Spacer(minLength: 2)
+            }.contentShape(Rectangle()).frame(minHeight: 24)
+          }.buttonStyle(.plain).accessibilityLabel(title)
+            .accessibilityValue(expanded ? L10n.text("已展开") : L10n.text("已收起"))
           if let menu { menu }
         }
-      }.padding(12)
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 9))
-        .overlay(RoundedRectangle(cornerRadius: 9).stroke(.separator.opacity(0.5)))
+        if expanded {
+          VStack(alignment: .leading, spacing: 7) { content }
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5)
+        }
+      }.padding(.horizontal, 10).padding(.vertical, 7)
+        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator.opacity(0.35)))
         .onChange(of: query) { _, value in if !value.isEmpty { store.send(.queryChanged) } }
     }
   }
@@ -67,7 +71,7 @@ struct InspectorConstraintRow<Details: View>: View {
           .lineLimit(2).multilineTextAlignment(.leading)
         HStack {
           Text("@ \(fields["priority"]?.inspectorText ?? "—")")
-          if fields["active"] == .bool(false) { Text("Inactive") }
+          if fields["active"] == .bool(false) { Text(L10n.text("Inactive")) }
           Spacer(minLength: 0)
           Image(systemName: "info.circle")
         }.font(.caption2).foregroundStyle(.secondary)

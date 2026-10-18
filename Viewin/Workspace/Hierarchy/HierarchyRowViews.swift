@@ -105,7 +105,7 @@ final class HierarchyCell: NSTableCellView {
     disclosure.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
       .withSymbolConfiguration(.init(pointSize: 9, weight: .semibold))
     disclosure.isHidden = row.node.childIds.isEmpty
-    disclosure.setAccessibilityLabel("展开或折叠 \(row.node.name)")
+    disclosure.setAccessibilityLabel(L10n.format("展开或折叠 %@", String(describing: row.node.name)))
     icon.image = NSImage(named: row.node.iconAsset)
     icon.contentTintColor =
       row.node.framework == "swiftui" || row.node.framework == "compose"
@@ -125,8 +125,8 @@ final class HierarchyCell: NSTableCellView {
     toolTip = row.tooltip
     alphaValue = row.hidden ? 0.45 : 1
     eventButton.isHidden = row.events.isEmpty
-    eventButton.toolTip = "\(row.events.count) 个事件或手势"
-    eventButton.setAccessibilityLabel("\(row.node.name) 的事件与手势")
+    eventButton.toolTip = L10n.format("%@ 个事件或手势", String(describing: row.events.count))
+    eventButton.setAccessibilityLabel(L10n.format("%@ 的事件与手势", String(describing: row.node.name)))
     needsLayout = true
   }
   func setPreviewHidden(_ hidden: Bool) {

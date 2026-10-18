@@ -21,12 +21,12 @@ struct MeasurementDiagramView: NSViewRepresentable {
     view.names = (selectedName, hoveredName)
     view.setAccessibilityElement(true)
     view.setAccessibilityRole(.image)
-    view.setAccessibilityLabel("测距结果")
+    view.setAccessibilityLabel(L10n.text("测距结果"))
     let distances = diagram.guides.map {
-      "\($0.axis == .horizontal ? "水平" : "垂直") \(measurementNumber($0.value)) \(unit)"
+      L10n.format("%@ %@ %@", String(describing: $0.axis == .horizontal ? L10n.text("水平") : L10n.text("垂直")), String(describing: measurementNumber($0.value)), String(describing: unit))
     }.joined(separator: "，")
     view.setAccessibilityValue(
-      "选中 \(selectedName)，悬停 \(hoveredName)，\(distances.isEmpty ? "边缘重合" : distances)")
+      L10n.format("选中 %@，悬停 %@，%@", String(describing: selectedName), String(describing: hoveredName), String(describing: distances.isEmpty ? L10n.text("边缘重合") : distances)))
     view.needsDisplay = true
   }
 
@@ -120,7 +120,7 @@ struct MeasurementDiagramView: NSViewRepresentable {
       } else {
         NSColor.controlAccentColor.withAlphaComponent(0.08 * opacity).setFill()
         frame.fill()
-        ("\(name)\n无截图" as NSString).draw(
+        (L10n.format("%@\n无截图", String(describing: name)) as NSString).draw(
           in: frame.insetBy(dx: 3, dy: 3),
           withAttributes: [
             .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor,

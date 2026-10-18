@@ -14,8 +14,8 @@ public struct EventHandlerPresentation: Sendable, Equatable, Identifiable {
     isGesture ? "hand.tap" : (title.contains("Editing") ? "keyboard" : "cursorarrow.click")
   }
 
-  init?(id: Int, value: JSONValue) {
-    guard case .object(let fields) = value, case .string(let type) = fields["typeName"] else { return nil }
+  public init?(id: Int, value: JSONValue) {
+    guard case .object(let fields) = value, case .string(let type) = fields["typeName"] ?? fields["type"] else { return nil }
     func text(_ key: String) -> String? {
       guard case .string(let value) = fields[key] else { return nil }
       return value
@@ -33,7 +33,7 @@ public struct EventHandlerPresentation: Sendable, Equatable, Identifiable {
       title = names[event].map { "UIControlEvent\($0)" } ?? "UIControlEvent(\(event))"
     } else { title = type }
     var subtitles: [String] = []
-    if let inherited = text("inheritedRecognizerName") { subtitles.append("Inherits from \(inherited)") }
+    if let inherited = text("inheritedRecognizerName") { subtitles.append(L10n.format("Inherits from %@", inherited)) }
     if case .array(let references) = fields["memberReferences"] {
       for case .object(let reference) in references {
         if case .string(let owner) = reference["ownerType"], case .string(let name) = reference["name"] {
@@ -43,15 +43,28 @@ public struct EventHandlerPresentation: Sendable, Equatable, Identifiable {
     }
     self.subtitles = subtitles
     var rows: [Row] = []
+    if text("origin") == "androidView" || text("origin") == "composeSemantics" {
+      if case .bool(let value) = fields["enabled"] { rows.append(.init(label: "Enabled", value: value ? "YES" : "NO")) }
+      rows.append(.init(label: text("origin") == "composeSemantics" ? "Action" : "Listener", value: text("handlerDescription").map { L10n.text($0) } ?? L10n.text("未采集")))
+      self.rows = rows
+      return
+    }
+    if text("origin") == "swiftuiRuntime" {
+      rows.append(.init(label: "Gesture", value: text("gestureType") ?? type))
+      rows.append(.init(label: "Composition", value: text("composition").map { L10n.text($0) } ?? L10n.text("未采集")))
+      rows.append(.init(label: "Handler", value: text("handlerDescription").map { L10n.text($0) } ?? L10n.text("Swift 闭包")))
+      self.rows = rows
+      return
+    }
     if isGesture {
       let enabled: String
       if case .bool(let value) = fields["enabled"] { enabled = value ? "YES" : "NO" }
-      else { enabled = "未采集" }
+      else { enabled = L10n.text("未采集") }
       rows.append(.init(label: "Enabled", value: enabled))
-      rows.append(.init(label: "Delegate", value: fields["delegate"] == .null ? "nil" : text("delegate") ?? "未采集"))
+      rows.append(.init(label: "Delegate", value: fields["delegate"] == .null ? "nil" : text("delegate") ?? L10n.text("未采集")))
     }
     if text("targetActionsAvailability") == "unavailable" {
-      rows.append(.init(label: "Target / Action", value: text("targetActionsReason") ?? "不可用"))
+      rows.append(.init(label: "Target / Action", value: text("targetActionsReason").map { L10n.text($0) } ?? L10n.text("不可用")))
     } else if case .array(let pairs) = fields["targetActions"] {
       if pairs.isEmpty {
         rows.append(.init(label: "Target", value: "nil"))
@@ -67,7 +80,7 @@ public struct EventHandlerPresentation: Sendable, Equatable, Identifiable {
       rows.append(.init(label: "Target", value: text("target") ?? "nil"))
       rows.append(.init(label: "Action", value: text("action") ?? "NULL"))
     } else {
-      rows.append(.init(label: "Target / Action", value: "未采集"))
+      rows.append(.init(label: "Target / Action", value: L10n.text("未采集")))
     }
     self.rows = rows
   }

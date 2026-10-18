@@ -83,5 +83,15 @@
 			</dict>
 		</dict>
 	</array>
+	<key>SUFeedURL</key>
+	<string>$(VIEWIN_UPDATE_FEED_URL)</string>
+	<key>SUPublicEDKey</key>
+	<string>$(VIEWIN_UPDATE_PUBLIC_KEY)</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>ViewinUpdatesEnabled</key>
+	<string>$(VIEWIN_ENABLE_UPDATES)</string>
 </dict>
 </plist>

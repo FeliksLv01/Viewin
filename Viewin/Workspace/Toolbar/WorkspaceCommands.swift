@@ -23,20 +23,24 @@ struct WorkspaceCommands: Commands {
   @FocusedValue(\.workspaceCommands) private var context
 
   var body: some Commands {
+    CommandGroup(after: .appInfo) {
+      Button(L10n.text("检查更新…")) { AppUpdater.shared.check() }
+        .disabled(!AppUpdater.shared.canCheck)
+    }
     CommandGroup(after: .newItem) {
-      Button("打开快照…") { context?.openSnapshot() }
+      Button(L10n.text("打开快照…")) { context?.openSnapshot() }
         .keyboardShortcut("o")
         .disabled(context == nil)
-      Button("保存快照…") { context?.workspace.saveSnapshot() }
+      Button(L10n.text("保存快照…")) { context?.workspace.saveSnapshot() }
         .keyboardShortcut("s")
         .disabled(context?.workspace.document == nil)
       Divider()
-      Button("刷新布局") { context?.workspace.refresh() }
+      Button(L10n.text("刷新布局")) { context?.workspace.refresh() }
         .keyboardShortcut("r")
         .disabled(context?.workspace.connectedTarget == nil || context?.workspace.isCapturing == true)
     }
     CommandGroup(replacing: .appSettings) {
-      Button("设置…") { if let workspace = context?.workspace ?? WorkspaceSettingsWindow.shared.workspace {
+      Button(L10n.text("设置…")) { if let workspace = context?.workspace ?? WorkspaceSettingsWindow.shared.workspace {
         WorkspaceSettingsWindow.shared.show(workspace: workspace)
       } }
         .keyboardShortcut(",")
@@ -44,28 +48,28 @@ struct WorkspaceCommands: Commands {
     }
     CommandGroup(after: .toolbar) {
       Divider()
-      Toggle("锁定测距", isOn: measurementBinding)
+      Toggle(L10n.text("锁定测距"), isOn: measurementBinding)
         .keyboardShortcut("m", modifiers: [.command, .shift])
         .disabled(context?.workspace.document == nil)
-      Picker("预览模式", selection: modeBinding) {
+      Picker(L10n.text("预览模式"), selection: modeBinding) {
         Text("2D").tag("2D")
         Text("3D").tag("3D")
       }.disabled(context?.workspace.document == nil)
-      Toggle("自由旋转", isOn: flag(\.freeRotation))
+      Toggle(L10n.text("自由旋转"), isOn: flag(\.freeRotation))
         .disabled(context?.workspace.document == nil)
-      Toggle("显示边界", isOn: flag(\.showBounds)).disabled(context == nil)
-      Picker("颜色格式", selection: colorBinding) {
+      Toggle(L10n.text("显示边界"), isOn: flag(\.showBounds)).disabled(context == nil)
+      Picker(L10n.text("颜色格式"), selection: colorBinding) {
         Text("RGBA").tag("rgba")
         Text("HEX").tag("hex")
       }.disabled(context == nil)
       Divider()
-      Button("放大") { context?.workspace.zoom = min(1, (context?.workspace.zoom ?? 0) + 0.1) }
+      Button(L10n.text("放大")) { context?.workspace.zoom = min(1, (context?.workspace.zoom ?? 0) + 0.1) }
         .keyboardShortcut("+", modifiers: .command)
         .disabled(context?.workspace.document == nil)
-      Button("缩小") { context?.workspace.zoom = max(0, (context?.workspace.zoom ?? 0) - 0.1) }
+      Button(L10n.text("缩小")) { context?.workspace.zoom = max(0, (context?.workspace.zoom ?? 0) - 0.1) }
         .keyboardShortcut("-", modifiers: .command)
         .disabled(context?.workspace.document == nil)
-      Button("复位视角与大小") { context?.workspace.resetCamera() }
+      Button(L10n.text("复位视角与大小")) { context?.workspace.resetCamera() }
         .keyboardShortcut("0")
         .disabled(context?.workspace.document == nil)
     }

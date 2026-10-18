@@ -10,17 +10,23 @@ public struct InspectionTarget: Identifiable, Sendable, Equatable {
   public let appId: String
   public let deviceName: String
   public let osVersion: String
+  public let platform: String
+  public var osDescription: String {
+    platform == "android" ? (osVersion.isEmpty ? "Android" : osVersion)
+      : (osVersion.isEmpty ? "iOS" : "iOS \(osVersion)")
+  }
   public let appIconPNG: Data?
   public let screenshotPNG: Data?
   public init(
     port: UInt16, appName: String, appId: String, deviceName: String, osVersion: String,
-    appIconPNG: Data? = nil, screenshotPNG: Data? = nil
+    appIconPNG: Data? = nil, screenshotPNG: Data? = nil, platform: String = "ios"
   ) {
     self.port = port
     self.appName = appName
     self.appId = appId
     self.deviceName = deviceName
     self.osVersion = osVersion
+    self.platform = platform
     self.appIconPNG = appIconPNG
     self.screenshotPNG = screenshotPNG
   }
@@ -30,6 +36,20 @@ public struct InspectionCapture: Sendable {
   public let images: [String: Data]
 }
 @MainActor public enum InspectionClient {
+  public static func discoverDevices() async -> [InspectionTarget] {
+    async let simulators = discoverSimulators()
+    async let android = discoverAndroid()
+    let targets = await (simulators + android).sorted { $0.port < $1.port }
+    var ports = Set<UInt16>()
+    return targets.filter { ports.insert($0.port).inserted }
+  }
+  public static func discoverAndroid() async -> [InspectionTarget] {
+    let ports = await AndroidBridge.shared.ports()
+    return await discover(ports: ports) { port in
+      guard let target = try? await target(port: port, timeout: 1), target.platform == "android" else { return nil }
+      return target
+    }
+  }
   public static func discoverSimulators() async -> [InspectionTarget] {
     await discover(ports: Array(InspectionWire.simulatorPorts)) { port in
       try? await target(port: port, timeout: 1)
@@ -70,14 +90,14 @@ public struct InspectionCapture: Sendable {
     guard let target = response.target, Set(response.imageIds).count == response.imageIds.count,
       response.imageIds.allSatisfy({ ["app-icon", "app-preview"].contains($0) })
     else {
-      throw TransportError("目标信息无效。")
+      throw TransportError(L10n.text("目标信息无效。"))
     }
     var previews: [String: Data] = [:]
     for id in response.imageIds { previews[id] = try await connection.receive() }
     return InspectionTarget(
       port: port, appName: target.appName, appId: target.appId,
       deviceName: target.deviceName, osVersion: target.osVersion,
-      appIconPNG: previews["app-icon"], screenshotPNG: previews["app-preview"])
+      appIconPNG: previews["app-icon"], screenshotPNG: previews["app-preview"], platform: target.platform)
   }
   public static func capture(_ target: InspectionTarget) async throws -> InspectionCapture {
     let connection = FramedConnection(port: target.port)
@@ -90,11 +110,11 @@ public struct InspectionCapture: Sendable {
     defer { timeout.cancel() }
     let response = try await exchange(
       InspectionRequest(method: "capture"), on: connection, timeout: .seconds(30))
-    guard let snapshot = response.snapshot else { throw TransportError("采集响应缺少层级。") }
+    guard let snapshot = response.snapshot else { throw TransportError(L10n.text("采集响应缺少层级。")) }
     let document = try SnapshotDocument(data: JSONEncoder().encode(snapshot))
     guard Set(response.imageIds).count == response.imageIds.count,
       Set(response.imageIds) == Set(snapshot.images.map(\.id))
-    else { throw TransportError("图片清单与快照不一致。") }
+    else { throw TransportError(L10n.text("图片清单与快照不一致。")) }
     var images: [String: Data] = [:]
     for id in response.imageIds { images[id] = try await connection.receive() }
     return InspectionCapture(document: document, images: images)
@@ -112,8 +132,8 @@ public struct InspectionCapture: Sendable {
       InspectionResponse.self, from: await connection.receive())
     guard response.service == InspectionWire.service, response.version == InspectionWire.version,
       response.id == request.id
-    else { throw TransportError("Viewin 协议或请求标识不匹配。") }
-    if let error = response.error { throw TransportError(error) }
+    else { throw TransportError(L10n.text("Viewin 协议或请求标识不匹配。")) }
+    if let error = response.error { throw TransportError(L10n.text(error)) }
     return response
   }
 }

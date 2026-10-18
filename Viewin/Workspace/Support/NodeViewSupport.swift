@@ -5,6 +5,7 @@ import ViewinSnapshot
 extension SnapshotNode {
   var sidebarDetail: String? {
     if listPositionSummary != nil { return nil }
+    if framework == "androidView", let resource = identifiers["resourceId"] { return resource.components(separatedBy: "/").last }
     if case .string(let trace) = availableProperty("trace"), !trace.isEmpty { return trace }
     guard case .array(let references) = availableProperty("memberReferences") else { return nil }
     var seen = Set<String>()
@@ -31,6 +32,7 @@ extension SnapshotNode {
     switch framework {
     case "uikit": "UIKit"
     case "swiftui": "SwiftUI"
+    case "swiftuiRendering": L10n.text("SwiftUI 渲染图层")
     case "androidView": "Android View"
     case "compose": "Compose"
     default: framework

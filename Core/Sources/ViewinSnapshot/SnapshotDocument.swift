@@ -15,23 +15,23 @@ public struct SnapshotDocument: Sendable {
         let snapshot = try JSONDecoder().decode(Snapshot.self, from: data)
         guard snapshot.protocolVersion.major == ProtocolVersion.current.major,
               snapshot.protocolVersion.minor >= 1 else {
-            throw SnapshotIssue(message: "不支持的快照协议版本。")
+            throw SnapshotIssue(message: L10n.text("不支持的快照协议版本。"))
         }
         guard !snapshot.snapshotId.isEmpty, !snapshot.sessionId.isEmpty,
               Self.parseTimestamp(snapshot.capturedAt) != nil else {
-            throw SnapshotIssue(message: "快照身份或时间无效。")
+            throw SnapshotIssue(message: L10n.text("快照身份或时间无效。"))
         }
         guard snapshot.nodes.count <= 10_000 else {
-            throw SnapshotIssue(message: "快照超过 10,000 个节点的读取上限。")
+            throw SnapshotIssue(message: L10n.text("快照超过 10,000 个节点的读取上限。"))
         }
         let ids = snapshot.nodes.map(\.id)
         guard Set(ids).count == ids.count, !ids.contains("") else {
-            throw SnapshotIssue(message: "节点 ID 为空或重复。")
+            throw SnapshotIssue(message: L10n.text("节点 ID 为空或重复。"))
         }
         let nodes = Dictionary(uniqueKeysWithValues: snapshot.nodes.map { ($0.id, $0) })
         let windowIds = snapshot.windows.map(\.id)
         guard Set(windowIds).count == windowIds.count else {
-            throw SnapshotIssue(message: "窗口 ID 重复。")
+            throw SnapshotIssue(message: L10n.text("窗口 ID 重复。"))
         }
         let windows = Dictionary(uniqueKeysWithValues: snapshot.windows.map { ($0.id, $0) })
         for window in snapshot.windows {
@@ -39,34 +39,34 @@ public struct SnapshotDocument: Sendable {
                   window.size.width > 0, window.size.height > 0,
                   window.pixelsPerUnit.isFinite, window.pixelsPerUnit > 0,
                   Set(window.rootNodeIds).count == window.rootNodeIds.count else {
-                throw SnapshotIssue(message: "窗口几何或根节点无效：\(window.id)")
+                throw SnapshotIssue(message: L10n.format("窗口几何或根节点无效：%@", String(describing: window.id)))
             }
             for root in window.rootNodeIds {
                 guard let node = nodes[root], node.windowId == window.id, node.parentId == nil else {
-                    throw SnapshotIssue(message: "窗口引用了无效根节点：\(root)")
+                    throw SnapshotIssue(message: L10n.format("窗口引用了无效根节点：%@", String(describing: root)))
                 }
             }
         }
         for node in snapshot.nodes {
             guard let window = windows[node.windowId], Set(node.childIds).count == node.childIds.count else {
-                throw SnapshotIssue(message: "节点窗口不存在或子节点重复：\(node.id)")
+                throw SnapshotIssue(message: L10n.format("节点窗口不存在或子节点重复：%@", String(describing: node.id)))
             }
             if let parentId = node.parentId {
                 guard let parent = nodes[parentId], parent.windowId == node.windowId,
                       parent.childIds.contains(node.id) else {
-                    throw SnapshotIssue(message: "父子引用不一致：\(node.id)")
+                    throw SnapshotIssue(message: L10n.format("父子引用不一致：%@", String(describing: node.id)))
                 }
             } else if !window.rootNodeIds.contains(node.id) {
-                throw SnapshotIssue(message: "根节点未登记到窗口：\(node.id)")
+                throw SnapshotIssue(message: L10n.format("根节点未登记到窗口：%@", String(describing: node.id)))
             }
             for childId in node.childIds {
                 guard let child = nodes[childId], child.parentId == node.id,
                       child.windowId == node.windowId else {
-                    throw SnapshotIssue(message: "子节点引用不一致：\(childId)")
+                    throw SnapshotIssue(message: L10n.format("子节点引用不一致：%@", String(describing: childId)))
                 }
             }
             guard node.visibility.alpha.isFinite, (0...1).contains(node.visibility.alpha) else {
-                throw SnapshotIssue(message: "透明度无效：\(node.id)")
+                throw SnapshotIssue(message: L10n.format("透明度无效：%@", String(describing: node.id)))
             }
             if let geometry = node.geometry {
                 let rects = [geometry.localBounds, geometry.frameInWindow]
@@ -76,7 +76,7 @@ public struct SnapshotDocument: Sendable {
                 }), geometry.cornersInWindow.count == 4,
                 geometry.cornersInWindow.allSatisfy({ $0.x.isFinite && $0.y.isFinite }),
                 geometry.clipInWindow.map({ $0.count >= 3 && $0.allSatisfy { $0.x.isFinite && $0.y.isFinite } }) ?? true else {
-                    throw SnapshotIssue(message: "节点几何无效：\(node.id)")
+                    throw SnapshotIssue(message: L10n.format("节点几何无效：%@", String(describing: node.id)))
                 }
             }
         }
@@ -85,42 +85,42 @@ public struct SnapshotDocument: Sendable {
         var visited = Set<String>()
         while let (id, depth) = pending.popLast() {
             guard depth <= 128 else {
-                throw SnapshotIssue(message: "层级超过 128 层的读取上限。")
+                throw SnapshotIssue(message: L10n.text("层级超过 128 层的读取上限。"))
             }
             guard visited.insert(id).inserted else {
-                throw SnapshotIssue(message: "层级中存在环或重复父节点：\(id)")
+                throw SnapshotIssue(message: L10n.format("层级中存在环或重复父节点：%@", String(describing: id)))
             }
             pending.append(contentsOf: (nodes[id]?.childIds ?? []).map { ($0, depth + 1) })
         }
         guard visited.count == nodes.count else {
-            throw SnapshotIssue(message: "存在无法从窗口访问的节点或循环引用。")
+            throw SnapshotIssue(message: L10n.text("存在无法从窗口访问的节点或循环引用。"))
         }
         for relation in snapshot.relations {
             guard nodes[relation.fromNodeId] != nil, nodes[relation.toNodeId] != nil else {
-                throw SnapshotIssue(message: "跨树关系引用了不存在的节点。")
+                throw SnapshotIssue(message: L10n.text("跨树关系引用了不存在的节点。"))
             }
         }
         let imageIds = snapshot.images.map(\.id)
         guard Set(imageIds).count == imageIds.count else {
-            throw SnapshotIssue(message: "图片 ID 重复。")
+            throw SnapshotIssue(message: L10n.text("图片 ID 重复。"))
         }
         for image in snapshot.images {
             let components = image.path.split(separator: "/", omittingEmptySubsequences: false)
             guard !image.path.isEmpty, !image.path.hasPrefix("/"), !image.path.contains("\\"),
                   !components.contains(".."), !components.contains("."), !components.contains(""),
                   !image.path.contains(":"), image.pixelWidth > 0, image.pixelHeight > 0 else {
-                throw SnapshotIssue(message: "图片路径或尺寸无效：\(image.id)")
+                throw SnapshotIssue(message: L10n.format("图片路径或尺寸无效：%@", String(describing: image.id)))
             }
         }
         for window in snapshot.windows where window.screenshotId != nil {
             guard imageIds.contains(window.screenshotId!) else {
-                throw SnapshotIssue(message: "窗口截图引用不存在：\(window.id)")
+                throw SnapshotIssue(message: L10n.format("窗口截图引用不存在：%@", String(describing: window.id)))
             }
         }
         let imageIdSet = Set(imageIds)
         for node in snapshot.nodes {
             guard [node.imageId, node.groupImageId].compactMap({ $0 }).allSatisfy(imageIdSet.contains) else {
-                throw SnapshotIssue(message: "节点截图引用不存在：\(node.id)")
+                throw SnapshotIssue(message: L10n.format("节点截图引用不存在：%@", String(describing: node.id)))
             }
         }
         self.snapshot = snapshot

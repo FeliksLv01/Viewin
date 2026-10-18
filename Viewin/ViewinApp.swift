@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main struct ViewinApp: App {
+  init() { _ = AppUpdater.shared }
   var body: some Scene {
     WindowGroup {
       ContentView()

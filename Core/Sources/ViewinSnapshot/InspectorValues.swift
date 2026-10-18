@@ -20,14 +20,14 @@ extension JSONValue {
   /// Scalars only. Collections are rendered as rows, never serialized as JSON.
   public var inspectorText: String {
     switch self {
-    case .null: return "未设置"
-    case .bool(let flag): return flag ? "是" : "否"
+    case .null: return L10n.text("未设置")
+    case .bool(let flag): return flag ? L10n.text("是") : L10n.text("否")
     case .number(let number):
       return number.formatted(.number.precision(.fractionLength(0...3)).grouping(.never))
     case .integer(let number): return String(number)
-    case .string(let text): return text.isEmpty ? "空字符串" : text
-    case .array(let values): return "\(values.count) 项"
-    case .object(let fields): return "\(fields.count) 个属性"
+    case .string(let text): return text
+    case .array(let values): return L10n.format("%@ 项", String(describing: values.count))
+    case .object(let fields): return L10n.format("%@ 个属性", String(describing: fields.count))
     }
   }
 
@@ -153,7 +153,7 @@ public enum InspectorValues {
     func item(_ key: String) -> String {
       let object = fields[key]?.fields ?? [:]
       if object.isEmpty { return "" }
-      let name = object["className"]?.inspectorText ?? "对象"
+      let name = object["className"]?.inspectorText ?? L10n.text("对象")
       if name.contains("_UIHostingView") { return "_UIHostingView" }
       return name
     }
