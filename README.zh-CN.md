@@ -25,7 +25,7 @@
 
 <p align="center"><sub>UIKit 与 SwiftUI 混合界面的真实采集快照：层级树、3D 预览和结构化检查器。</sub></p>
 
-> 当前处于早期开发阶段，尚未发布首个安装包。移动端 SDK 已[独立开源](https://github.com/FeliksLv01/ViewinSDK)，Android Maven 制品托管在公开 GitHub 仓库；SwiftPM 在版本标签发布前可使用 main 分支。以下说明区分已经实现的能力与仍待验证的部分。
+> 当前处于早期开发阶段，尚未发布首个安装包。移动端 SDK 已[独立开源](https://github.com/FeliksLv01/ViewinSDK)，Android Maven 制品托管在公开 GitHub 仓库；SwiftPM 可使用 `0.1.0` 发布标签。以下说明区分已经实现的能力与仍待验证的部分。
 
 ## 能做什么
 

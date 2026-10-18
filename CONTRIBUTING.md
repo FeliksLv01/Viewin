@@ -17,7 +17,7 @@ workspace/
 └── ViewinSDK/                # 独立 SDK、协议和 iOS / Android Demo
 ```
 
-SDK 目录必须命名为 `ViewinSDK` 并放在同一父目录。当前 SDK 远程分发尚未配置，单独克隆桌面仓库还不足以构建。
+SDK 目录必须命名为 `ViewinSDK` 并放在同一父目录。请同时克隆公开的 [ViewinSDK](https://github.com/FeliksLv01/ViewinSDK)；桌面工程当前仍使用同级目录的本地依赖。
 
 打开 `Viewin.xcodeproj`，选择 Viewin scheme 和本地开发签名团队，然后运行。命令行构建示例：
 

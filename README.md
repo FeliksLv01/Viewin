@@ -25,7 +25,7 @@
 
 <p align="center"><sub>A capture of a mixed UIKit and SwiftUI interface, with its hierarchy, 3D preview, and structured inspector.</sub></p>
 
-> Viewin is in early development. The first installer has not been released yet. The mobile SDK is [open source](https://github.com/FeliksLv01/ViewinSDK). Android Maven artifacts are available from its public GitHub-hosted repository; SwiftPM uses the main branch until version tags are published. The sections below distinguish implemented features from capabilities that still need validation.
+> Viewin is in early development. The first installer has not been released yet. The mobile SDK is [open source](https://github.com/FeliksLv01/ViewinSDK). Android Maven artifacts are available from its public GitHub-hosted repository; SwiftPM can use the `0.1.0` release tag. The sections below distinguish implemented features from capabilities that still need validation.
 
 ## Features
 
