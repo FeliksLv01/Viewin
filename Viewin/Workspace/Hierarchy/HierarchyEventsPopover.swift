@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import ViewinSnapshot
 
 /// System popover chrome owns the arrow, material, corners and dismissal.
 @MainActor final class HierarchyEventsPopover {
@@ -10,7 +11,7 @@ import SwiftUI
     popover.animates = false
   }
 
-  func show(events: [String], from row: NSView) {
+  func show(events: [EventHandlerPresentation], from row: NSView) {
     close()
     guard let window = row.window, let screen = window.screen, !row.visibleRect.isEmpty else { return }
     let windowArea = window.contentView.map { window.convertToScreen($0.convert($0.bounds, to: nil)) }
@@ -18,11 +19,11 @@ import SwiftUI
     let usable = screen.visibleFrame.intersection(windowArea)
     guard usable.width > 80, usable.height > 100 else { return }
     let width = min(366, usable.width - 48)
-    let charactersPerLine = max(1, Int((width - 36) / 7.2))
-    let lines = events.reduce(0) { total, event in
-      total + event.components(separatedBy: "\n").reduce(0) { $0 + max(1, Int(ceil(Double($1.count) / Double(charactersPerLine)))) }
+    let idealHeight = events.reduce(CGFloat(0)) { height, event in
+      height + 44 + CGFloat(event.subtitles.count) * 18 + event.rows.reduce(CGFloat(0)) {
+        $0 + max(20, CGFloat(ceil(Double($1.value.count) / 40)) * 17)
+      }
     }
-    let idealHeight = CGFloat(lines) * 18 + CGFloat(max(0, events.count - 1)) * 12 + 66
     // Budget the complete content, including heading and padding, against the
     // usable screen/window intersection. NSHostingController must not grow it.
     let height = min(420, usable.height - 48, max(120, idealHeight))
@@ -40,26 +41,51 @@ import SwiftUI
 }
 
 private struct EventContents: View {
-  let events: [String]
+  let events: [EventHandlerPresentation]
   let size: CGSize
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("事件与手势").font(.headline)
-      ScrollView {
-        VStack(alignment: .leading, spacing: 12) {
-          ForEach(Array(events.enumerated()), id: \.offset) { _, event in
-            Text(event)
-              .font(.system(size: 12, design: .monospaced))
-              .textSelection(.enabled)
-              .frame(maxWidth: .infinity, alignment: .leading)
-          }
+    ScrollView {
+      VStack(alignment: .leading, spacing: 0) {
+        ForEach(events) { event in
+          if event.id != events.first?.id { Divider().padding(.leading, 28).padding(.trailing, 16) }
+          EventGroup(event: event)
         }
       }
-      .scrollBounceBehavior(.basedOnSize)
-      .frame(maxHeight: .infinity)
     }
-    .padding(18)
-    .frame(width: size.width, height: size.height, alignment: .topLeading)
+    .scrollBounceBehavior(.basedOnSize)
+    .frame(width: size.width, height: size.height)
+  }
+}
+
+private struct EventGroup: View {
+  let event: EventHandlerPresentation
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Image(systemName: event.symbol)
+        .font(.system(size: 13)).foregroundStyle(.secondary).frame(width: 14, height: 16)
+      VStack(alignment: .leading, spacing: 5) {
+        Text(event.title)
+          .font(.system(size: event.isGesture ? 12 : 13, weight: .semibold))
+          .lineLimit(1).truncationMode(.middle).help(event.title).textSelection(.enabled)
+        ForEach(Array(event.subtitles.enumerated()), id: \.offset) { _, subtitle in
+          Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary)
+            .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+        }
+        Grid(alignment: .topLeading, horizontalSpacing: 10, verticalSpacing: 5) {
+          ForEach(Array(event.rows.enumerated()), id: \.offset) { _, row in
+            GridRow(alignment: .top) {
+              Text(row.label).foregroundStyle(.secondary)
+                .frame(width: 78, alignment: .trailing)
+              Text(row.value).textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+        }.font(.system(size: 12))
+      }.frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(.vertical, 10).padding(.leading, 8).padding(.trailing, 16)
   }
 }

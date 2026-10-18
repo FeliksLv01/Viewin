@@ -66,7 +66,7 @@ struct HierarchyTable: NSViewRepresentable {
       let node: SnapshotNode
       let depth: Int
       let detail: String
-      let events: [String]
+      let events: [EventHandlerPresentation]
       let tooltip: String
       let hidden: Bool
     }
@@ -107,7 +107,7 @@ struct HierarchyTable: NSViewRepresentable {
             separator: " ")
           return Row(
             node: node, depth: entry.depth, detail: details,
-            events: node.eventHandlerSummaries,
+            events: node.eventHandlers,
             tooltip: ([node.typeName] + node.memberReferenceNames).joined(separator: "\n"),
             hidden: entry.hidden)
         }

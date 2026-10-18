@@ -41,16 +41,8 @@ extension SnapshotNode {
   }
 
   public var eventHandlerSummaries: [String] {
-    guard case .array(let handlers) = availableProperty("eventHandlers") else { return [] }
-    return handlers.compactMap { value in
-      guard case .object(let fields) = value,
-        case .string(let name) = fields["typeName"]
-      else { return nil }
-      var lines = [name]
-      for key in ["event", "enabled", "delegate", "target", "action", "targetActions", "origin"] {
-        if let value = fields[key], value != .null { lines.append("\(key): \(value.displayText)") }
-      }
-      return lines.joined(separator: "\n")
+    eventHandlers.map { event in
+      ([event.title] + event.subtitles + event.rows.map { "\($0.label): \($0.value)" }).joined(separator: "\n")
     }
   }
 
