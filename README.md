@@ -25,7 +25,7 @@
 
 <p align="center"><sub>A capture of a mixed UIKit and SwiftUI interface, with its hierarchy, 3D preview, and structured inspector.</sub></p>
 
-> Viewin is in early development. The first installer has not been released yet. The mobile SDK is maintained separately and is not yet available through remote SwiftPM or Maven distribution. The sections below distinguish implemented features from capabilities that still need validation.
+> Viewin is in early development. The first installer has not been released yet. The mobile SDK is [open source](https://github.com/FeliksLv01/ViewinSDK). Android Maven artifacts are available from its public GitHub-hosted repository; SwiftPM uses the main branch until version tags are published. The sections below distinguish implemented features from capabilities that still need validation.
 
 ## Features
 
@@ -60,7 +60,7 @@ Viewin requires **macOS 15.6 or later**. Once the first installer is published, 
 
 ### 2. Enable the SDK in your app
 
-The desktop app and mobile SDK are separate repositories. This repository does not contain mobile capture code. The SDK currently integrates as a local Swift package or Gradle module; see the companion `ViewinSDK` repository for details.
+The desktop app and mobile SDK are separate repositories. This repository does not contain mobile capture code. See [ViewinSDK](https://github.com/FeliksLv01/ViewinSDK) for SwiftPM integration and [Android Maven setup](https://github.com/FeliksLv01/ViewinSDK/blob/main/android/README.md). Android consumers do not need to import SDK source modules.
 
 **iOS**: add the `ViewinSDK` product and start it when your app launches. For SwiftUI inspection, start it before the first SwiftUI host is created.
 
@@ -73,7 +73,7 @@ try Viewin.start()
 
 The SDK requires iOS 15 or later. Declare the build type with `buildType: .debug` or `.internalRelease`. This is diagnostic information, not a guarantee that a capture capability is available. The host app explicitly decides whether to integrate and enable the SDK in both Debug and internal Release builds.
 
-**Android**: start the SDK in `Application.onCreate`. View-based apps depend on `viewin-sdk`. Compose apps use the optional `viewin-compose` module, which includes the base SDK, and start it before the first `setContent` call.
+**Android**: after adding the [SDK Maven repository](https://github.com/FeliksLv01/ViewinSDK/blob/main/android/README.md), depend on `io.github.felikslv01.viewin:viewin-sdk:0.1.0` or `io.github.felikslv01.viewin:viewin-compose:0.1.0`. Start the SDK in `Application.onCreate`. View-based apps depend on `viewin-sdk`. Compose apps use the optional `viewin-compose` module, which includes the base SDK, and start it before the first `setContent` call.
 
 ```kotlin
 Viewin.start(

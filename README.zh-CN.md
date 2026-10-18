@@ -25,7 +25,7 @@
 
 <p align="center"><sub>UIKit 与 SwiftUI 混合界面的真实采集快照：层级树、3D 预览和结构化检查器。</sub></p>
 
-> 当前处于早期开发阶段，尚未发布首个安装包。移动端 SDK 独立维护，目前也未发布远程 SwiftPM / Maven 版本。以下说明区分已经实现的能力与仍待验证的部分。
+> 当前处于早期开发阶段，尚未发布首个安装包。移动端 SDK 已[独立开源](https://github.com/FeliksLv01/ViewinSDK)，Android Maven 制品托管在公开 GitHub 仓库；SwiftPM 在版本标签发布前可使用 main 分支。以下说明区分已经实现的能力与仍待验证的部分。
 
 ## 能做什么
 
@@ -60,7 +60,7 @@
 
 ### 2. 在自己的 App 中启用 SDK
 
-桌面 App 和移动端 SDK 是两个独立仓库。本仓库不包含移动端采集代码。SDK 当前以本地 Swift Package / Gradle 模块接入，详细说明位于配套 `ViewinSDK` 仓库。
+桌面 App 和移动端 SDK 是两个独立仓库。本仓库不包含移动端采集代码。接入方式见 [ViewinSDK](https://github.com/FeliksLv01/ViewinSDK)：iOS 使用 SwiftPM，Android 使用 [Maven 依赖](https://github.com/FeliksLv01/ViewinSDK/blob/main/android/README.md)，无需导入 SDK 源码模块。
 
 **iOS**：选择 `ViewinSDK` 产品，在 App 启动时调用。检查 SwiftUI 时，应在首个 SwiftUI 宿主创建前启动。
 
@@ -73,7 +73,7 @@ try Viewin.start()
 
 SDK 最低 iOS 15。可通过 `buildType: .debug` 或 `.internalRelease` 声明构建类型；它是诊断信息，不保证某项采集能力一定可用。Debug 和内部 Release 都由宿主显式决定是否集成、启用 SDK。
 
-**Android**：在 `Application.onCreate` 中启动。普通 View 宿主依赖 `viewin-sdk`；Compose 宿主选择包含基础 SDK 的可选模块 `viewin-compose`，并在首次 `setContent` 前启动。
+**Android**：添加 [SDK Maven 仓库](https://github.com/FeliksLv01/ViewinSDK/blob/main/android/README.md)后，依赖 `io.github.felikslv01.viewin:viewin-sdk:0.1.0`，或 Compose 模块 `io.github.felikslv01.viewin:viewin-compose:0.1.0`。在 `Application.onCreate` 中启动。普通 View 宿主依赖 `viewin-sdk`；Compose 宿主选择包含基础 SDK 的可选模块 `viewin-compose`，并在首次 `setContent` 前启动。
 
 ```kotlin
 Viewin.start(
